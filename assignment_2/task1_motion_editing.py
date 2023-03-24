@@ -41,12 +41,30 @@ def interpolation(left_data, right_data, t, method='linear', return_first_key=Tr
     '''
     ########## Code Start ############
     if method == 'linear':
-        
-        
+        for i in range(t):
+            data_between = left_data + (right_data - left_data) * (i / t)
+            res.append(data_between)
         return res
     elif method == 'slerp':
-        
-        
+        # shape of a frame: 25 * 4
+        # we want to return a t * 25 * 4
+        individual_interp_list = []
+        res = []
+        for i in range(t + 1):
+            res.append([])
+        for joint_idx in range(len(left_data)): # 25 joints
+            key_rots = R.from_quat([left_data[joint_idx], right_data[joint_idx]])
+            key_times = [0, 1]
+            slerp = Slerp(key_times, key_rots)
+            new_key_times = np.linspace(0, 1, t + 1) # interpolate t frames in between
+            interp_rots = slerp(new_key_times) # 10 quaternions, 10 * 4
+            individual_interp_list.append(interp_rots.as_quat())
+            # interp_rots is the interpolation between one joint's start and end rotation
+            # we want to reformat the results into res
+        for joint_idx in range(len(left_data)):
+            for frame_idx in range(t + 1):
+                res[frame_idx].append(individual_interp_list[joint_idx][frame_idx])
+                # expect 10 * 25 * 4
         return res
     ########## Code End ############
 
@@ -181,11 +199,11 @@ def part2_concatenate(viewer, between_frames, example=False):
 def main():
     viewer = SimpleViewer()  
    
-    # part1_key_framing(viewer, 10, 10)
+    part1_key_framing(viewer, 10, 10)
     # part1_key_framing(viewer, 10, 5)
     # part1_key_framing(viewer, 10, 20)
     # part1_key_framing(viewer, 10, 30)
-    part2_concatenate(viewer, between_frames=8, example=True)
+    # part2_concatenate(viewer, between_frames=8, example=True)
     # part2_concatenate(viewer, between_frames=8)  
     viewer.run()
 
