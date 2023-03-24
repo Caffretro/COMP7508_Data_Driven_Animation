@@ -68,8 +68,11 @@ def inverse_kinematics(meta_data, global_joint_positions, global_joint_orientati
         iteration_num = 20
         end_joint_name = meta_data.end_joint
         end_idx = path_name.index(end_joint_name)
+
         for _ in range(iteration_num):
             for current_idx in range(end_idx - 1, 0, -1):
+                # from second last joint to the root joint on the current chain
+                # we are only working on the left arm in this scenario
                 '''
                 TODO: How to update chain_orientations by optimizing the chain_positions(CCD)?
 
@@ -94,14 +97,20 @@ def inverse_kinematics(meta_data, global_joint_positions, global_joint_orientati
                 '''
                 
                 ########## Code Start ############
-                
+                # as the hints mentioned, no need to update global position, just update orientation
+                # target_pose is the desired position [0.5, 0.75, 0.5]
+                # current joint is chain_positions[current_idx]
+                # we need two vectors: vec_cur2end and vec_cur2target
+                vec_cur2end = norm(chain_positions[end_idx] - chain_positions[current_idx])
+                vec_cur2target = norm(target_pose - chain_positions[current_idx])
 
+                rot = np.arccos(np.vdot(vec_cur2end,vec_cur2target))
+                axis = norm(np.cross(vec_cur2end,vec_cur2target))
+                rot_vec = R.from_rotvec(rot * axis)
 
+                if not np.isnan(rot):
+                    chain_orientations[current_idx] = rot_vec * chain_orientations[current_idx]
 
-
-
-
-                
                 ########## Code End ############
 
                 chain_local_rotations = [chain_orientations[0]] + [chain_orientations[i].inv() * chain_orientations[i + 1] for i in range(len(path) - 1)]
