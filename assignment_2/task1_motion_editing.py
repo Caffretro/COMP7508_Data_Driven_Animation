@@ -146,13 +146,21 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
     '''
     
     ########## Code Start ############
-    # search_win1 = 
-    # search_win2 = 
+    search_win1 = motion1.local_joint_rotations[last_frame_index - searching_frames:last_frame_index + searching_frames]
+    search_win2 = motion2.local_joint_rotations[max(0, start_frame_indx - searching_frames):start_frame_indx + searching_frames]
     
-    # sim_matrix = 
-    # min_idx = 
+    sim_matrix = np.empty(shape=(search_win1.shape[0], search_win2.shape[0]))
+    min_idx = -1
+    i, j = -1, -1
+    local_min = float(np.iinfo(np.float32).max)
+    for row in range(search_win1.shape[0]):
+        for col in range(search_win2.shape[0]):
+            sim_matrix[row][col] = np.linalg.norm(search_win1[row], search_win2[col])
+            if sim_matrix[row][col] < local_min:
+                local_min = sim_matrix[row][col]
+                i, j = row, col
     # i, j = min_idx // sim_matrix.shape[1], min_idx % sim_matrix.shape[1]
-    # real_i, real_j = 
+    real_i, real_j = i, j
     
     # between_local_pos = 
     # between_local_rot = 
@@ -160,6 +168,7 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
     ########## Code End ############
     
     res = motion1.raw_copy()
+    # concatnate two motions from frame real_i to real_j
     res.local_joint_positions = np.concatenate([motion1.local_joint_positions[:real_i],
                                                 between_local_pos,
                                                 motion2.local_joint_positions[real_j:]], 
