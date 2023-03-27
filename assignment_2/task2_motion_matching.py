@@ -450,8 +450,9 @@ def main():
     # selected_feature_names = ['trajectoryPos2D', 'trajectoryRot2D']
     # selected_feature_weights = [1, 1]
     
-    selected_feature_names = ['lFootPos', 'rFootPos']
-    selected_feature_weights = [0.75, 0.75]
+    # one working version of 6 variables
+    selected_feature_names = ['trajectoryPos2D', 'trajectoryRot2D', 'lFootPos', 'rFootPos', 'lFootVel', 'rFootVel']
+    selected_feature_weights = [1, 1, 0.75, 0.75, 1, 1]
     
     # selected_feature_names = ['lFootPos', 'rFootPos', 'lFootVel', 'rFootVel']
     # selected_feature_weights = [0.75, 0.75, 1, 1]
@@ -459,8 +460,8 @@ def main():
     # selected_feature_names = ['lFootPos', 'rFootPos', 'lFootVel', 'rFootVel', 'hipVel']
     # selected_feature_weights = [0.75, 0.75, 1, 1, 1]
     
-    # selected_feature_names = ['lFootPos', 'rFootPos', 'lFootRot', 'rFootRot', 'hipVel', 'lHandPos', 'rHandPos']
-    # selected_feature_weights = [0.75, 0.75, 1, 1, 1, 1, 1, 1]
+    # selected_feature_names = ['trajectoryPos2D', 'trajectoryRot2D', 'lFootPos', 'rFootPos', 'lFootRot', 'rFootRot', 'hipVel', 'lHandPos', 'rHandPos']
+    # selected_feature_weights = [0.5, 0.5, 0.75, 0.75, 1, 1, 1, 1, 1]
     
     assert len(selected_feature_names) == len(selected_feature_weights)
     
