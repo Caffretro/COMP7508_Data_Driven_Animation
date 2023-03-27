@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
+import matplotlib.pyplot as plt
 
 from file_io import BVHMotion
 from Viewer.controller import SimpleViewer
@@ -136,7 +137,7 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
     
     Useful functions:
         1. The difference between two vectors: np.linalg.norm(a - b)
-        2. The index of minimal value in a matrix: np.min(sim_matrix)
+        2. The index of minimal value in a matrix: np.argmin(sim_matrix)
         3. local_joint_rotations = motion.local_joint_rotations
         4. local_joint_positions = motion.local_joint_positions
         5. Visualize the sim_matrix matrix:
@@ -148,23 +149,23 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
     ########## Code Start ############
     search_win1 = motion1.local_joint_rotations[last_frame_index - searching_frames:last_frame_index + searching_frames]
     search_win2 = motion2.local_joint_rotations[max(0, start_frame_indx - searching_frames):start_frame_indx + searching_frames]
-    
     sim_matrix = np.empty(shape=(search_win1.shape[0], search_win2.shape[0]))
-    min_idx = -1
+   
     i, j = -1, -1
-    local_min = float(np.iinfo(np.float32).max)
     for row in range(search_win1.shape[0]):
         for col in range(search_win2.shape[0]):
-            sim_matrix[row][col] = np.linalg.norm(search_win1[row], search_win2[col])
-            if sim_matrix[row][col] < local_min:
-                local_min = sim_matrix[row][col]
-                i, j = row, col
-    # i, j = min_idx // sim_matrix.shape[1], min_idx % sim_matrix.shape[1]
-    real_i, real_j = i, j
+            sim_matrix[row, col] = np.linalg.norm(search_win1[row] - search_win2[col])
+    min_idx = np.argmin(sim_matrix) # index of the min value in matrix
+    i, j = min_idx // sim_matrix.shape[1], min_idx % sim_matrix.shape[1]
+    # transform i, j to index in the motion
+    real_i, real_j = last_frame_index - searching_frames + i, max(0, start_frame_indx - searching_frames) + j
     
-    # between_local_pos = 
-    # between_local_rot = 
-    
+    # shift motion 2's global position to motion 1's end
+    motion2.local_joint_positions[:] -= motion2.local_joint_positions[real_j] - motion1.local_joint_positions[real_i]
+
+    between_local_pos = interpolation(motion1.local_joint_positions[real_i], motion2.local_joint_positions[real_j], 9)
+    between_local_rot = interpolation(motion1.local_joint_rotations[real_i], motion2.local_joint_rotations[real_j], 9, 'slerp')
+    # TODO: transform global position of motion 2
     ########## Code End ############
     
     res = motion1.raw_copy()
@@ -208,12 +209,12 @@ def part2_concatenate(viewer, between_frames, example=False):
 def main():
     viewer = SimpleViewer()  
    
-    part1_key_framing(viewer, 10, 10)
+    # part1_key_framing(viewer, 10, 10)
     # part1_key_framing(viewer, 10, 5)
     # part1_key_framing(viewer, 10, 20)
     # part1_key_framing(viewer, 10, 30)
     # part2_concatenate(viewer, between_frames=8, example=True)
-    # part2_concatenate(viewer, between_frames=8)  
+    part2_concatenate(viewer, between_frames=8)  
     viewer.run()
 
 
