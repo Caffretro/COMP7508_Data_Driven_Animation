@@ -50,7 +50,9 @@ def interpolation(left_data, right_data, t, method='linear', return_first_key=Tr
         # shape of a frame: 25 * 4
         # we want to return a t * 25 * 4
         individual_interp_list = []
+        # We reset res here for easy data formatting, exclude first item if we don't want first frame before return
         res = []
+
         for i in range(t + 1):
             res.append([])
         for joint_idx in range(len(left_data)): # 25 joints
@@ -66,7 +68,11 @@ def interpolation(left_data, right_data, t, method='linear', return_first_key=Tr
             for frame_idx in range(t + 1):
                 res[frame_idx].append(individual_interp_list[joint_idx][frame_idx])
                 # expect 10 * 25 * 4
-        return res
+
+        if return_first_key:
+            return res
+        else:
+            return res[1:]
     ########## Code End ############
 
 def part1_key_framing(viewer, time_step, target_step):
@@ -163,8 +169,8 @@ def concatenate_two_motions(motion1, motion2, last_frame_index, start_frame_indx
     # shift motion 2's global position to motion 1's end
     motion2.local_joint_positions[:] -= motion2.local_joint_positions[real_j] - motion1.local_joint_positions[real_i]
 
-    between_local_pos = interpolation(motion1.local_joint_positions[real_i], motion2.local_joint_positions[real_j], 9)
-    between_local_rot = interpolation(motion1.local_joint_rotations[real_i], motion2.local_joint_rotations[real_j], 9, 'slerp')
+    between_local_pos = interpolation(motion1.local_joint_positions[real_i], motion2.local_joint_positions[real_j], between_frames)
+    between_local_rot = interpolation(motion1.local_joint_rotations[real_i], motion2.local_joint_rotations[real_j], between_frames, 'slerp')
     # TODO: transform global position of motion 2
     ########## Code End ############
     
@@ -209,12 +215,12 @@ def part2_concatenate(viewer, between_frames, example=False):
 def main():
     viewer = SimpleViewer()  
    
-    # part1_key_framing(viewer, 10, 10)
+    part1_key_framing(viewer, 10, 10)
     # part1_key_framing(viewer, 10, 5)
     # part1_key_framing(viewer, 10, 20)
     # part1_key_framing(viewer, 10, 30)
     # part2_concatenate(viewer, between_frames=8, example=True)
-    part2_concatenate(viewer, between_frames=8)  
+    # part2_concatenate(viewer, between_frames=64)  
     viewer.run()
 
 
