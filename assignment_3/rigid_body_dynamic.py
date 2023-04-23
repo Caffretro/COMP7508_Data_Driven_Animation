@@ -51,13 +51,13 @@ body_mass = ti.field(float, shape=())
 # Simulation parameters, feel free to change them
 # We assume all particles have the same mass
 particle_mass = 1
-initial_velocity = ti.Vector([2.0, 0.0, 0.0])
+initial_velocity = ti.Vector([3.0, 0.0, 0.0])
 initial_angular_velocity = ti.Vector([0.0, 0, 0.0])
 gravity = ti.Vector([0.0, -9.8, 0.0])
 # stiffness of the collision
 collision_stiffness = 1e4
-velocity_damping_stiffness = 1e3
-friction_stiffness = 0.1
+velocity_damping_stiffness = 1e4
+friction_stiffness = 0.9
 # simulation integration time step delta time
 dt = 1e-3
 
@@ -149,20 +149,25 @@ def substep():
 
         # Collision force, we use a spring model to simulate the collision
         if particle_vertices[i][1] < -1:
-            f_collision = collision_stiffness * (-1 - particle_vertices[i][1])
+            f_collision = collision_stiffness * friction_stiffness * (-1 - particle_vertices[i][1])
             particle_force[i] += ti.Vector([0, f_collision, 0])
+            particle_force[i] -= friction_stiffness * body_velocity[None]
         if particle_vertices[i][0] < -1:
-            f_collision = collision_stiffness * (-1 - particle_vertices[i][0])
+            f_collision = collision_stiffness * friction_stiffness * (-1 - particle_vertices[i][0])
             particle_force[i] += ti.Vector([f_collision, 0, 0])
+            particle_force[i] -= friction_stiffness * body_velocity[None]
         if particle_vertices[i][0] > 1:
-            f_collision = collision_stiffness * (1 - particle_vertices[i][0])
+            f_collision = collision_stiffness * friction_stiffness * (1 - particle_vertices[i][0])
             particle_force[i] += ti.Vector([f_collision, 0, 0])
+            particle_force[i] -= friction_stiffness * body_velocity[None]
         if particle_vertices[i][2] < -1:
-            f_collision = collision_stiffness * (-1 - particle_vertices[i][2])
+            f_collision = collision_stiffness * friction_stiffness * (-1 - particle_vertices[i][2])
             particle_force[i] += ti.Vector([0, 0, f_collision])
+            particle_force[i] -= friction_stiffness * body_velocity[None]
         if particle_vertices[i][2] > 1:
-            f_collision = collision_stiffness * (1 - particle_vertices[i][2])
+            f_collision = collision_stiffness * friction_stiffness * (1 - particle_vertices[i][2])
             particle_force[i] += ti.Vector([0, 0, f_collision])
+            particle_force[i] -= friction_stiffness * body_velocity[None]
 
     # computer the force for rigid body
     body_force = ti.Vector([0.0, 0.0, 0.0])
@@ -170,7 +175,7 @@ def substep():
         # TODO 3: compute the force for rigid body
         body_force += particle_force[i]
         # pass
-
+        
     # computer the torque for rigid body
     body_torque = ti.Vector([0.0, 0.0, 0.0])
     for i in ti.grouped(particle_vertices):
@@ -196,7 +201,7 @@ def substep():
     # hint: use A @ B to do matrix multiplication, use A.transpose() to get the transpose of A
     body_angular_momentum[None] += dt * body_torque
     body_inverse_inertia = body_rotation[None] @ body_origin_inverse_inertia[None] @ body_rotation[None].transpose()
-    body_angular_velocity[None] = body_inverse_inertia @ body_angular_momentum[None]
+    body_angular_velocity[None] = body_inverse_inertia @ body_angular_momentum[None] * velocity_damping_stiffness
 
 
     # update the particles
