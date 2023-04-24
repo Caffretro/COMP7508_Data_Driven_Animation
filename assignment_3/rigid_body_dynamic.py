@@ -51,8 +51,8 @@ body_mass = ti.field(float, shape=())
 # Simulation parameters, feel free to change them
 # We assume all particles have the same mass
 particle_mass = 1
-initial_velocity = ti.Vector([3.0, 0.0, 0.0])
-initial_angular_velocity = ti.Vector([0.0, 0, 0.0])
+initial_velocity = ti.Vector([3.0, 0.0, 1.0])
+initial_angular_velocity = ti.Vector([0.0, 0, 1.0])
 gravity = ti.Vector([0.0, -9.8, 0.0])
 # stiffness of the collision
 collision_stiffness = 1e4
@@ -201,7 +201,7 @@ def substep():
     # hint: use A @ B to do matrix multiplication, use A.transpose() to get the transpose of A
     body_angular_momentum[None] += dt * body_torque
     body_inverse_inertia = body_rotation[None] @ body_origin_inverse_inertia[None] @ body_rotation[None].transpose()
-    body_angular_velocity[None] = body_inverse_inertia @ body_angular_momentum[None] * velocity_damping_stiffness
+    body_angular_velocity[None] = body_inverse_inertia @ body_angular_momentum[None]
 
 
     # update the particles
