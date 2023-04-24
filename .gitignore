@@ -4,6 +4,9 @@
 #macos
 .DS_Store
 
+# videos
+*.mov
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
